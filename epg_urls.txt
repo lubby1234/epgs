@@ -1,0 +1,2 @@
+http://drewlive24.duckdns.org:8081/merged_epg.xml.gz
+http://drewlive24.duckdns.org:8081/merged2_epg.xml.gz

@@ -1,0 +1,45 @@
+name: Fetch EPGs (no history)
+
+on:
+  workflow_dispatch:    # Manual trigger
+  schedule:             # Auto trigger every 4 hours
+    - cron: "0 */4 * * *"
+
+permissions:
+  contents: write
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout (full)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # we’ll rewrite history anyway
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Run fetcher
+        run: |
+          python3 --version
+          chmod +x epg_fetch.py
+          ./epg_fetch.py
+
+      - name: Prepare orphan commit (wipe history each run)
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          CURRENT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+          git checkout --orphan tmp-empty-root
+          git add -A
+          git commit -m "Update EPGs (no history)"
+          git branch -M "${CURRENT_BRANCH}"
+
+      - name: Force push
+        run: |
+          git push -f origin HEAD
